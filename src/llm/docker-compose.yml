@@ -4,7 +4,7 @@ services:
   jupyter-notebook:
       image: jupyter/datascience-notebook
       volumes:
-        - ./notebooks:~/dev
+        - .:/home/jovyan/work/
       ports:
         - 8888:8888
       container_name: jupyter-notebook-container
