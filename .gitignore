@@ -1,3 +1,6 @@
+# Custom ignores
+src/llm/notebooks/models/
+
 # Source: https://github.com/jupyter/notebook/blob/main/.gitignore
 *.bundle.*
 lib/
