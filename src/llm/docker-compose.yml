@@ -1,0 +1,10 @@
+# Source: https://towardsdatascience.com/jupyter-data-science-stack-docker-in-under-15-minutes-19d8f822bd45
+version: '3.9'
+services:
+  jupyter-notebook:
+      image: jupyter/datascience-notebook
+      volumes:
+        - ./notebooks:~/dev
+      ports:
+        - 8888:8888
+      container_name: jupyter-notebook-container
