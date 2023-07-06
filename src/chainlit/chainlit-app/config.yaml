@@ -1,0 +1,2 @@
+db:
+  dir: "~/Airflow_Docs_LLM_App/src/llm/notebooks/db"
