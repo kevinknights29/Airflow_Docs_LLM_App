@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "chainlit-app"
+version = "0.1.0"
+description = ""
+authors = ["Kevin Knights <kevinknights29@hotmail.com>"]
+readme = "README.md"
+packages = [{include = "chainlit_app"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+accelerate = "^0.20.3"
+transformers = {extras = ["torch"], version = "^4.30.2"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
