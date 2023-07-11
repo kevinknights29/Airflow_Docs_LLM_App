@@ -1,29 +1,55 @@
 from __future__ import annotations
 
 import chainlit as cl
+from chainlit_app.common import config
+from langchain import HuggingFacePipeline
 from langchain.chains import RetrievalQAWithSourcesChain
-from langchain.chat_models import ChatOpenAI
+from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain.vectorstores import Chroma
+from transformers import pipeline
 
 
-db = Chroma(persist_directory="./chroma_db")
+# Create or load a vector store from the database
+embeddings = SentenceTransformerEmbeddings(
+    model_name=config()["db"]["embeddings_model"],
+)
+vector_db = Chroma(
+    collection_name=config()["db"]["collection"],
+    persist_directory=config()["db"]["dir"],
+    embedding_function=embeddings,
+)
 
 
 @cl.langchain_factory(use_async=True)
 async def init():
+    # Model setup
+    model = config()["model"]
+    text_gen_pipeline = pipeline(
+        model=model,
+        model_kwargs={
+            "device_map": "auto",
+            "load_in_8bit": False,
+            "temperature": 0.1,
+            "top_p": 1.0,
+            "max_length": 1024,
+        },
+        max_new_tokens=2048,
+    )
+    llm = HuggingFacePipeline(pipeline=text_gen_pipeline)
+
+    # Create a message to let the user know that the system is loading
+    msg = cl.Message(content="Init started! This may take a while...")
+    await msg.send()
+
     # Create a chain that uses the Chroma vector store
     chain = RetrievalQAWithSourcesChain.from_chain_type(
-        ChatOpenAI(temperature=0),
-        chain_type="stuff",
-        # retriever=docsearch.as_retriever(),
+        llm=llm,
+        chain_type="refine",
+        retriever=vector_db.as_retriever(search_type="mmr"),
     )
 
-    # Save the metadata and texts in the user session
-    # cl.user_session.set("metadatas", metadatas)
-    # cl.user_session.set("texts", texts)
-
     # Let the user know that the system is ready
-    # await msg.update(content=f"`{file.name}` processed. You can now ask questions!")
+    await msg.update("Init finished... You can now ask questions!")
 
     return chain
 
