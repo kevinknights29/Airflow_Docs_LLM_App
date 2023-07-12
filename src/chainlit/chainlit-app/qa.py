@@ -18,6 +18,7 @@ vector_db = Chroma(
     persist_directory=config()["db"]["dir"],
     embedding_function=embeddings,
 )
+print(f"Documents Loaded: {vector_db._collection.count()}")
 
 
 @cl.langchain_factory(use_async=True)
@@ -49,7 +50,9 @@ async def init():
     )
 
     # Let the user know that the system is ready
-    await msg.update("Init finished... You can now ask questions!")
+    # Create a message to let the user know that the system is loading
+    msg = cl.Message(content="Init finished... You can now ask questions!")
+    await msg.send()
 
     return chain
 
