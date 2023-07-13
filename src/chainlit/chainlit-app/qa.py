@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import os
+
 import chainlit as cl
 from chainlit_app.common import config
+from chainlit_app.constants import ROOT
 from langchain import HuggingFacePipeline
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain.vectorstores import Chroma
 from transformers import pipeline
-
 
 # Create or load a vector store from the database
 embeddings = SentenceTransformerEmbeddings(
@@ -15,13 +17,17 @@ embeddings = SentenceTransformerEmbeddings(
 )
 vector_db = Chroma(
     collection_name=config()["db"]["collection"],
-    persist_directory=config()["db"]["dir"],
+    persist_directory=os.path.join(
+        ROOT,
+        config()["db"]["dir"],
+    ),  # if using a path inside the project
+    # persist_directory=os.path.expanduser(config()["db"]["dir"]), # if using a path outside the project
     embedding_function=embeddings,
 )
 print(f"Documents Loaded: {vector_db._collection.count()}")
 
 
-@cl.langchain_factory(use_async=True)
+@cl.langchain_factory(use_async=False)
 async def init():
     # Model setup
     model = config()["model"]
