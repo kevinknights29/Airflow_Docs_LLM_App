@@ -10,6 +10,9 @@ packages = [{include = "chainlit_app"}]
 python = "^3.9"
 accelerate = "^0.20.3"
 transformers = {extras = ["torch"], version = "^4.30.2"}
+langchain = "^0.0.230"
+chromadb = "^0.3.27"
+sentence-transformers = "^2.2.2"
 
 
 [build-system]

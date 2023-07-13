@@ -4,8 +4,8 @@ import logging
 import sys
 
 import yaml
-from project.utils.constants import CONFIG_FILE
-from project.utils.constants import LOGGING_FORMAT
+from chainlit_app.constants import CONFIG_FILE
+from chainlit_app.constants import LOGGING_FORMAT
 from yaml.loader import SafeLoader
 
 logger = logging.getLogger(__name__)
