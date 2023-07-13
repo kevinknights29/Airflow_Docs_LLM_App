@@ -1,5 +1,5 @@
 db:
-  dir: "~/Code/Airflow_Docs_LLM_App/src/llm/notebooks/db/"
+  dir: "src/llm/notebooks/db/"
   collection: "airflow_docs_stable"
-  embeddings_model: "all-MiniLM-L6-v2"
+  embeddings_model: "all-mpnet-base-v2"
 model: "gpt2"
