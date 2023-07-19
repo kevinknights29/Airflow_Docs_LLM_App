@@ -1,12 +1,5 @@
 {
   "@jupyterlab/apputils-extension:themes": {
     "theme": "JupyterLab Dark"
-  },
-  "@jupyterlab/extensionmanager-extension:plugins": {
-    "plugin": [
-      "jupyterlab-code-formatter",
-      "jupyter-lsp-jupyterlab-lsp",
-      "jupyterlab-spellchecker"
-      ]
   }
 }
