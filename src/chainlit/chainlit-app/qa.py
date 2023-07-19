@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 import chainlit as cl
+import chromadb
 from chainlit_app.common import config
 from chainlit_app.constants import ROOT
 from langchain import HuggingFacePipeline
@@ -12,16 +13,22 @@ from langchain.vectorstores import Chroma
 from transformers import pipeline
 
 # Create or load a vector store from the database
+client = chromadb.PersistentClient(
+    path=os.path.join(
+        ROOT,
+        config()["db"]["dir"],
+    ),
+)
+
+# Define the embedding function
 embeddings = SentenceTransformerEmbeddings(
     model_name=config()["db"]["embeddings_model"],
 )
+
+# Initialize the vector store
 vector_db = Chroma(
+    client=client,
     collection_name=config()["db"]["collection"],
-    persist_directory=os.path.join(
-        ROOT,
-        config()["db"]["dir"],
-    ),  # if using a path inside the project
-    # persist_directory=os.path.expanduser(config()["db"]["dir"]), # if using a path outside the project
     embedding_function=embeddings,
 )
 print(f"Documents Loaded: {vector_db._collection.count()}")
@@ -41,6 +48,8 @@ async def init():
             "max_length": 1024,
         },
         max_new_tokens=2048,
+        # device=torch.device('mps'), # remove this line if you don't have an M1+ Mac and uncomment the line 45
+        # torch_dtype=torch.float16,
     )
     llm = HuggingFacePipeline(pipeline=text_gen_pipeline)
 
