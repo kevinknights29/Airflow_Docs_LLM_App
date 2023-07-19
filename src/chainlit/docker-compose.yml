@@ -1,10 +1,11 @@
 version: '3.9'
 services:
-  langchain-chainlit-chat-app:
-    image: langchain-chainlit-chat-app:latest
-    build: .
-    command: chainlit run demo_app/main.py
-    volumes:
-      - ./demo_app/:/app/demo_app
+  app:
+    build:
+      context: .  # Directory containing Dockerfile
+      dockerfile: Dockerfile
+    environment:
+      - HOST=0.0.0.0
+      - LISTEN_PORT=8000
     ports:
-      - "8000:8000"
+      - "8000:8000"  # Maps port 8000 of the container to port 8000 of the host
