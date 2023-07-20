@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import os
-
 import chainlit as cl
 import chromadb
 from chainlit_app.common import config
-from chainlit_app.constants import ROOT
 from langchain import HuggingFacePipeline
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
@@ -13,12 +10,15 @@ from langchain.vectorstores import Chroma
 from transformers import pipeline
 
 # Create or load a vector store from the database
-client = chromadb.PersistentClient(
-    path=os.path.join(
-        ROOT,
-        config()["db"]["dir"],
-    ),
-)
+# client = chromadb.PersistentClient(
+#     path=os.path.join(
+#         ROOT,
+#         config()["db"]["dir"],
+#     ),
+# )
+
+# Example setup of the client to connect to your chroma server
+client = chromadb.HttpClient(host="server", port=8000)
 
 # Define the embedding function
 embeddings = SentenceTransformerEmbeddings(
