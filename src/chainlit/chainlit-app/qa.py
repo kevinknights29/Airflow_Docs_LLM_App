@@ -3,11 +3,10 @@ from __future__ import annotations
 import chainlit as cl
 import chromadb
 from chainlit_app.common import config
-from langchain import HuggingFacePipeline
+from chainlit_app.llm import text_generation
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain.vectorstores import Chroma
-from transformers import pipeline
 
 # Create or load a vector store from the database
 # client = chromadb.PersistentClient(
@@ -36,22 +35,7 @@ print(f"Documents Loaded: {vector_db._collection.count()}")
 
 @cl.langchain_factory(use_async=False)
 async def init():
-    # Model setup
-    model = config()["model"]
-    text_gen_pipeline = pipeline(
-        model=model,
-        model_kwargs={
-            "device_map": "auto",
-            "load_in_8bit": False,
-            "temperature": 0.1,
-            "top_p": 1.0,
-            "max_length": 1024,
-        },
-        max_new_tokens=2048,
-        # device=torch.device('mps'), # remove this line if you don't have an M1+ Mac and uncomment the line 45
-        # torch_dtype=torch.float16,
-    )
-    llm = HuggingFacePipeline(pipeline=text_gen_pipeline)
+    llm = text_generation._llm_init()
 
     # Create a message to let the user know that the system is loading
     msg = cl.Message(content="Init started! This may take a while...")
