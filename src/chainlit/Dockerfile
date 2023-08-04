@@ -34,7 +34,10 @@ ENV PYTHONUNBUFFERED=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
     POETRY_VIRTUALENVS_CREATE=1 \
     # set cache path
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+    POETRY_CACHE_DIR=/tmp/poetry_cache \
+    # llama.cpp
+    CMAKE_ARGS="-DLLAMA_CUBLAS=on" \
+    FORCE_CMAKE=1
 
 # `builder-base` stage is used to build deps + create our virtual environment
 FROM python-base as builder-base
@@ -43,16 +46,24 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y \
         # deps for installing poetry
         curl \
+        wget \
         # deps for building python deps
         build-essential \
         python3-dev \
-        gcc
+        gcc \
+        cmake
 
 # prepend poetry and venv to path
 ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
 # install poetry - respects $POETRY_VERSION & $POETRY_HOME
 RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Download models
+WORKDIR /opt
+RUN mkdir -p models && \
+    cd models && \
+    wget https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGML/resolve/main/llama-2-7b-chat.ggmlv3.q4_0.bin
 
 # copy project requirement files here to ensure they will be cached.
 WORKDIR $APP_PATH
@@ -62,6 +73,9 @@ ADD ./$APP_NAME ./
 # install runtime deps - uses $POETRY_VIRTUALENVS_IN_PROJECT internally
 RUN poetry install
 # you can exclude the development dependencies by adding --no-dev to the previous command.
+
+# Install the package using Poetry and pip
+RUN poetry run pip install llama-cpp-python
 
 # `development` image is used during development / testing
 FROM builder-base as development
