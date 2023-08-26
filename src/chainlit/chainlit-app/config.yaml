@@ -2,4 +2,4 @@ db:
   dir: "src/llm/notebooks/db/"
   collection: "airflow_docs_stable"
   embeddings_model: "all-mpnet-base-v2"
-model: "/opt/models/llama-2-7b-chat.ggmlv3.q4_0.bin"
+model: "/opt/models/codellama-7b-python.Q4_K_S.gguf"

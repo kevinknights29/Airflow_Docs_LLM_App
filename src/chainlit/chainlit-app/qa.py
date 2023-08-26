@@ -4,7 +4,7 @@ import chainlit as cl
 import chromadb
 from chainlit_app.common import config
 from chainlit_app.llm import text_generation
-from langchain.chains import RetrievalQAWithSourcesChain
+from langchain.chains import RetrievalQA
 from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain.vectorstores import Chroma
 
@@ -33,57 +33,50 @@ vector_db = Chroma(
 print(f"Documents Loaded: {vector_db._collection.count()}")
 
 
-@cl.langchain_factory(use_async=False)
-async def init():
-    llm = text_generation._llm_init()
-
-    # Create a message to let the user know that the system is loading
-    msg = cl.Message(content="Init started! This may take a while...")
-    await msg.send()
-
+@cl.on_chat_start
+def main():
     # Create a chain that uses the Chroma vector store
-    chain = RetrievalQAWithSourcesChain.from_chain_type(
-        llm=llm,
+    chain = RetrievalQA.from_chain_type(
+        text_generation._llm_init(),
         chain_type="refine",
         retriever=vector_db.as_retriever(search_type="mmr"),
+        return_source_documents=True,
     )
 
-    # Let the user know that the system is ready
-    # Create a message to let the user know that the system is loading
-    msg = cl.Message(content="Init finished... You can now ask questions!")
-    await msg.send()
-
-    return chain
+    cl.user_session.set("chain", chain)
 
 
-@cl.langchain_postprocess
-async def process_response(res):
-    answer = res["answer"]
-    sources = res["sources"].strip()
+@cl.on_message
+async def main(message: str):
+    # Retrieve the chain from the user session
+    chain = cl.user_session.get("chain")  # type: RetrievalQA
+
+    # Call the chain synchronously in a different thread
+    res = await cl.make_async(chain)(
+        message,
+        callbacks=[cl.LangchainCallbackHandler()],
+    )
+
+    # Post process the response
+    answer = res["result"]
+    source_documents = res["source_documents"]
     source_elements = []
 
-    # Get the metadata and texts from the user session
-    metadatas = cl.user_session.get("metadatas")
-    all_sources = [m["source"] for m in metadatas]
-    texts = cl.user_session.get("texts")
-
-    if sources:
+    if source_documents:
         found_sources = []
+        # Get the metadata and texts from vector database
+        sources = [doc.metadata["source"] for doc in source_documents]
+        texts = [doc.page_content for doc in source_documents]
 
         # Add the sources to the message
-        for source in sources.split(","):
+        for index, source in enumerate(sources):
             source_name = source.strip().replace(".", "")
-            # Get the index of the source
-            try:
-                index = all_sources.index(source_name)
-            except ValueError:
-                continue
             text = texts[index]
             found_sources.append(source_name)
             # Create the text element referenced in the message
             source_elements.append(cl.Text(content=text, name=source_name))
 
-        if found_sources:
+        if sources:
             answer += f"\nSources: {', '.join(found_sources)}"
         else:
             answer += "\nNo sources found"
