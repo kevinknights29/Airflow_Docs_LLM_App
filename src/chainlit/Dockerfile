@@ -63,7 +63,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 WORKDIR /opt
 RUN mkdir -p models && \
     cd models && \
-    wget https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGML/resolve/main/llama-2-7b-chat.ggmlv3.q4_0.bin
+    wget https://huggingface.co/TheBloke/CodeLlama-7B-Python-GGUF/resolve/main/codellama-7b-python.Q4_K_S.gguf
 
 # copy project requirement files here to ensure they will be cached.
 WORKDIR $APP_PATH
